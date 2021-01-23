@@ -25,7 +25,6 @@ choose_best <- function(x,
                         othermax=0, 
                         ndim=NULL, 
                         ...){
-  meth <- match.arg(choice_method)
   if(!is.null(ndim)){
     if(ndim > ncol(x)){
       ndim <- NULL

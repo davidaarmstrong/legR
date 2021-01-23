@@ -116,6 +116,21 @@ out <- legR(
   est_model = TRUE
 )
 
+
+out <- legR(
+  votes[,-1], 
+  terms=trm, 
+  legis_data=ld, 
+  minprop=.1, 
+  nRounds = 2, 
+  k=2, 
+  ndim=2, 
+  method="glrm", 
+  max_mem_size="1g", 
+  est_model = TRUE
+)
+
+
 o <- gather_data(out, orthogonalize=c("gs", "pca"))
 leg <- setNames(leg, c("name", "session", "true1", "true2"))
 all <- left_join(leg, o)

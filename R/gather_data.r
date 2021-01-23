@@ -75,77 +75,78 @@ gather_data <- function(x, ...,
       out_dat <- left_join(out_dat, out_orth)
     }
   }
-  # if(boot_sd){
-  #   boot.res <- list()
-  #   for(i in 1:length(x$mods)){
-  #     cat("\n\nCalculating Bootstrap SD for Dimension", i, "\n")
-  #     boot.res[[i]] <- boot_emIRT(x$mods[[i]],
-  #                          .data=x$dats[[i]]$dat,
-  #                          .starts = x$starts[[i]],
-  #                          .priors = x$priors[[i]],
-  #                          .control = dynIRT_control,
-  #                          Ntrials=Nboot)
-  #   }
-  #   boot_long <- list()
-  #   for(i in 1:length(boot.res)){
-  #     boot_long[[i]] <- data.frame(name = rep(ids[[i]][,1], ncol(lats[[i]])),
-  #                                 time = rep(1:ncol(lats[[i]]), each=nrow(ids[[i]])),
-  #                                 latent = c(boot.res[[i]]$bse$x))
-  #     names(boot_long[[i]])[3] <- paste0("Dim_", i, "_sd")
-  #   }
-  #   boot_out <- x$legis_data
-  #   for(i in 1:length(boot_long)){
-  #     boot_out <- left_join(boot_out, boot_long[[i]])
-  #   }
-  #   allNA <-  apply(boot_out[,grep("^Dim", names(boot_out))], 1, function(z)all(is.na(z)))
-  #   boot_out <- boot_out %>% filter(!allNA)
-  #   out_dat <- left_join(out_dat, boot_out)
-  #   if(ortho %in% c("gs", "pca")){
-  #     draws <- list()
-  #     for(i in 1:length(lats)){
-  #       wna <- which(is.na(out_dat[[glue("Dim_{i}")]]) | is.na(out_dat[[glue("Dim_{i}_sd")]]))
-  #       mu <- out_dat[[glue("Dim_{i}")]]
-  #       sig <- out_dat[[glue("Dim_{i}_sd")]]
-  #       mu[wna] <- 0
-  #       sig[wna] <- 0
-  #       draws[[i]] <- t(MASS::mvrnorm(1500, mu, diag(sig)))
-  #     }
-  #     if(ortho == "gs"){
-  #       out_orth <- out_dat
-  #       for(m in 2:length(lats)){
-  #         ivs <- glue_collapse(glue("Dim_{1:max(1, (m-1))}"), "+")
-  #         form <- glue("Dim_{m} ~ {ivs}")
-  #         tmp_mod <- lm(form, data=out_orth)
-  #         fit <-matrix(coef(tmp_mod)[1], ncol=ncol(draws[[1]]), nrow=nrow(draws[[1]]))
-  #         for(j in 2:length(coef(tmp_mod))){
-  #           fit <- fit + coef(tmp_mod)[j]*draws[[(j-1)]]
-  #         }
-  #         res <- draws[[m]] - fit
-  #         out_orth[[glue("Dim_{m}")]] <- rowMeans(res)
-  #         out_orth[[glue("Dim_{m}_sd")]] <- apply(res, 1, sd)
-  #       }
-  #     }
-  #     if(ortho == "pca"){
-  #       out_orth <- out_dat
-  #       sel <- grep("^Dim_\\d+$", names(out_dat), value=TRUE)
-  #       dims <- out_dat %>% dplyr::select(all_of(sel))
-  #       pc_dim <- princomp(na.omit(dims))
-  #       nd <- lapply(1:ncol(draws[[1]]), function(x)sapply(draws, function(i)i[,x]))
-  #       nd <-lapply(nd, function(x)as.matrix(x) %*% pc_dim$loadings)
-  #       nd2 <- lapply(1:ncol(nd[[1]]), function(i)sapply(nd, function(x)x[,i]))
-  #       for(m in 1:length(nd2)){
-  #         out_orth[[glue("Dim_{m}")]] <- rowMeans(nd2[[m]])
-  #         out_orth[[glue("Dim_{m}_sd")]] <- apply(nd2[[m]], 1, sd)
-  #       }
-  #     }
-  #     for(i in 1:length(lats)){
-  #       wna <- which(is.na(out_dat[[glue("Dim_{i}")]]) | is.na(out_dat[[glue("Dim_{i}_sd")]]))
-  #       if(length(wna) > 0){
-  #         out_orth[[glue("Dim_{i}")]][wna] <- NA
-  #         out_orth[[glue("Dim_{i}_sd")]][wna] <- NA
-  #       }
-  #     }
-  #   }
-  # }
+  if(boot_sd){
+    boot.res <- list()
+    for(i in 1:length(x$mods)){
+      cat("\n\nCalculating Bootstrap SD for Dimension", i, "\n")
+      boot.res[[i]] <- boot_emIRT(x$mods[[i]],
+                           .data=x$dats[[i]]$dat,
+                           .starts = x$starts[[i]],
+                           .priors = x$priors[[i]],
+                           .control = dynIRT_control,
+                           Ntrials=Nboot)
+    }
+    out_ses <- lapply(1:length(boot.res), function(i){
+      d <- boot.res[[i]]$bse$x
+      colnames(d) <- 1:ncol(d)
+      base <- x$dats[[i]]$id %>% 
+        select("name") %>% 
+        mutate(start = c(x$dats[[1]]$dat$startlegis+1), 
+               end = c(x$dats[[1]]$dat$endlegis+1))
+      d <- bind_cols(base, as_tibble(d)) %>%
+        pivot_longer(-c("name", "start","end"), names_to="session", values_to = paste0("Dim_",i)) %>%
+        mutate(session = as.numeric(.data$session)) %>% 
+        filter(!(.data$session < .data$start | .data$session > .data$end))
+      d    
+    })
+    out_se <- out_ses[[1]]
+    for(i in 2:length(out_ses)){
+      out_se <- full_join(out_se, out_ses[[i]])
+    }
+    names(out_se) <- gsub("(Dim_\\d+)", "\\1_sd", names(out_se))
+    out_dat <- full_join(out_dat, out_se)
+    if("gs" %in% ortho){
+      out_orth <-out_dat
+      out_orth <- out_orth %>% 
+        mutate(Dim_1_gs = .data$Dim_1, 
+               dim_1_gs_sd = out_se$Dim_1_sd) %>% 
+        select(-c("Dim_1", "Dim_1_sd"))
+      for(m in 2:length(x$mods)){
+        ivs <- glue_collapse(glue("Dim_{1:max(1, (m-1))}_gs"), "+")
+        form <- glue("Dim_{m} ~ {ivs}")
+        tmp_mod <- lm(form, data=out_orth)
+        out_orth[[glue("Dim_{m}_gs")]] <- out_dat[[glue("Dim_{m}")]] - predict(tmp_mod, newdata=out_orth)
+        a <- coef(tmp_mod)
+        s2 <- out_se[[glue("Dim_{m}_sd")]]^2
+        for(j in 1:length(a)){
+          s2 <- s2 + a[j]^2*out_se[[glue("Dim_{j}_sd")]]^2
+        }
+        out_orth[[glue("Dim_{m}_gs_sd")]] <- sqrt(s2)
+        out_orth <- out_orth %>% select(-c(glue("Dim_{m}"), glue("Dim_{m}_sd")))
+        
+      }
+      out_dat <- left_join(out_dat, out_orth)
+    }
+    if("pca" %in% ortho){
+      out_orth <- out_dat
+      ggs <- grep("_gs", names(out_orth), value=TRUE)
+      if(length(ggs) > 0){
+        out_orth <- out_orth %>% select(-all_of(ggs))
+      }
+      selx <- grep("^Dim_\\d+$", names(out_dat), value=TRUE)
+      sels <- grep("^Dim_\\d+_sd$", names(out_dat), value=TRUE)
+      dims <- out_dat %>% dplyr::select(all_of(selx))
+      sds <- out_dat %>% dplyr::select(all_of(sels))
+      pc_dim <- princomp(na.omit(dims))
+      scores <- as.matrix(dims) %*% pc_dim$loadings
+      vars <- as.matrix(sds)^2 %*% pc_dim$loadings^2
+      for(m in 1:length(x$mods)){
+        out_orth[[glue("Dim_{m}_pca")]] <- scores[,m]
+        out_orth[[glue("Dim_{m}_pca_sd")]] <- sqrt(vars[,m])
+        out_orth <- out_orth %>% select(-c(glue("Dim_{m}"), glue("Dim_{m}_sd")))
+      }
+      out_dat <- left_join(out_dat, out_orth)
+    }
+  }
   return(out_dat)
 }

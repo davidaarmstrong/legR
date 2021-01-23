@@ -4,18 +4,10 @@
 \alias{choose_best}
 \title{Choose Best Dimension}
 \usage{
-choose_best(
-  x,
-  bestmin = 0,
-  othermax = 0,
-  ndim = NULL,
-  choice_method = c("pre", "b"),
-  ...
-)
+choose_best(x, bestmin = 0, othermax = 0, ndim = NULL, ...)
 }
 \arguments{
-\item{x}{Depending on \code{choice_method} it could be a #Votes x #Dimensions 
-matrix of PRE values or p-values.}
+\item{x}{A #Votes x #Dimensions matrix of PRE values.}
 
 \item{bestmin}{Scalar indicating the minimum PRE value to be
 considered "well predicted" bythe model.}
@@ -25,12 +17,7 @@ If \code{NULL}, the algorithm just chooses the first highest PRE, regardless
 of the other PRE values.}
 
 \item{ndim}{Scalar giving the number of dimensions to use.  The algorithm
-will use the first \code{ndim} columns of \code{x} in the calculation.}
-
-\item{choice_method}{String giving the method used to choose the best dimension.
-By default, (the \code{"pre"} option) the best dimension is chosen by comparing 
-PREs.  The \code{"b"} option chooses dimensions based on the significance of the 
-coefficient relating the initialized latent variable to all of the votes. 
+will use the first \code{ndim} columns of \code{x} in the calculation.
 If \code{NULL}, all dimensions are used.}
 
 \item{...}{Other arguments to be passed down - currently not implemented.}
