@@ -1,0 +1,24 @@
+Package: legR
+Type: Package
+Title: Multidimensional Independent Dynamic IRT Models
+Version: 0.1.0
+Authors@R: person("Dave", "Armstrong", email="dave@quantoid.net", 
+  role=c("aut", "cre"))
+Description: Estiamtes a multidimensional independent dynamic item response theory model through variable segmentation and repeated calls on segmented data to unidimensional dynamic IRT models. 
+Imports: stats, 
+         magrittr, 
+         utils, 
+         dplyr, 
+         glue, 
+         RSpectra, 
+         pscl, 
+         emIRT, 
+         Matrix, 
+         rlang, 
+         MASS, 
+         tidyr
+Suggests: h2o
+License: GPL (>=2)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
