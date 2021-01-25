@@ -118,18 +118,18 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
                      b_range = c(.75, 1.5), 
                     ...){
   
-  n_per_term = ceiling(runif(1, 30,150))
-  incumb_prop = runif(1, .4, .9)
-  nterms = 10
-  s_range = c(-2,2) 
-  w_range = sort(runif(2, .05, 2.5), decreasing = FALSE)
-  dim = 2
-  n_votes = 500
-  prop_votes = .65
-  prop_irrel = 0 
-  a_range = c(-1.5, -.5) 
-  b_range = c(.75, 1.5) 
-  nRounds <- 2
+  # n_per_term = ceiling(runif(1, 30,150))
+  # incumb_prop = runif(1, .4, .9)
+  # nterms = 10
+  # s_range = c(-2,2) 
+  # w_range = sort(runif(2, .05, 2.5), decreasing = FALSE)
+  # dim = 2
+  # n_votes = 500
+  # prop_votes = .65
+  # prop_irrel = 0 
+  # a_range = c(-1.5, -.5) 
+  # b_range = c(.75, 1.5) 
+  # nRounds <- 2
 
   
   
@@ -220,11 +220,6 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
                       select(name, session, coord1D, coord2D) %>% 
                       rename("Dim_1" = "coord1D", "Dim_2" = "coord2D"))
 
-    
-    
-    
-        
-    
     res <- list(r1 = r1, 
                 r2 = r2, 
                 params = c("n_per_term" = n_per_term, 
