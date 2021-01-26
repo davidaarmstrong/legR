@@ -34,8 +34,8 @@ gather_data <- function(x, ...,
     colnames(d) <- 1:ncol(d)
     base <- x$dats[[i]]$id %>% 
       select("name") %>% 
-      mutate(start = c(x$dats[[1]]$dat$startlegis+1), 
-             end = c(x$dats[[1]]$dat$endlegis+1))
+      mutate(start = c(x$dats[[i]]$dat$startlegis+1), 
+             end = c(x$dats[[i]]$dat$endlegis+1))
     d <- bind_cols(base, as_tibble(d)) %>%
       pivot_longer(-c("name", "start","end"), names_to="session", values_to = paste0("Dim_",i)) %>%
       mutate(session = as.numeric(.data$session)) %>% 
@@ -91,8 +91,8 @@ gather_data <- function(x, ...,
       colnames(d) <- 1:ncol(d)
       base <- x$dats[[i]]$id %>% 
         select("name") %>% 
-        mutate(start = c(x$dats[[1]]$dat$startlegis+1), 
-               end = c(x$dats[[1]]$dat$endlegis+1))
+        mutate(start = c(x$dats[[i]]$dat$startlegis+1), 
+               end = c(x$dats[[i]]$dat$endlegis+1))
       d <- bind_cols(base, as_tibble(d)) %>%
         pivot_longer(-c("name", "start","end"), names_to="session", values_to = paste0("Dim_",i)) %>%
         mutate(session = as.numeric(.data$session)) %>% 

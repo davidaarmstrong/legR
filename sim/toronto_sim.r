@@ -1,5 +1,5 @@
 setwd("Z:/Dropbox (DaveArmstrong)/RA_Toronto roll call votes")
-load("torontoX.rda")
+load("~/Dropbox/RA_Toronto roll call votes/torontoX.rda")
 library(pscl)
 library(tidyverse)
 h <- h_all %>% select(name)
@@ -23,3 +23,9 @@ sen_dwnom <- dwnominate(rcl)
 sim_dwnom <- dwnominate(sim_rcl)
 sim_dwnom2 <- dwnominate(sim_rcl, model=2)
 sim_dwnom3 <- dwnominate(sim_rcl, model=3, polar=c(24,53))
+
+
+library(legR)
+
+l <- legR(X, trms, est_model = TRUE, nRounds=2, max_mem_size="8g", method="glrm", k=3, ndim=3, legis_data = h)
+lo <- gather_data(l, orthogonalize = "gs",)
