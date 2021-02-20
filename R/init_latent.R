@@ -32,6 +32,7 @@
 #' @return A list with the reduced set of votes, their corresponding terms
 #' and an n x k matrix of latent variable estimates.
 #' @importFrom stats princomp binomial coef glm na.omit plogis sd cov
+#' @importFrom dplyr group_by
 #' @importFrom utils installed.packages
 #' @importFrom magrittr `%>%`
 #' @importFrom RSpectra eigs_sym
@@ -43,7 +44,9 @@ init_lv <- function(X,
                     terms,
                     method=c("pca", "glrm"),
                     k=5,
-                    nRounds = 1, 
+                    nRounds = 1,
+                    nMax = NULL,
+                    nRand = 1, 
                     h2o.init.args,
                     h2o.glrm.args,
                     ...){
@@ -84,12 +87,22 @@ init_lv <- function(X,
       cols <- sample(1:nRounds, ncol(X), replace=TRUE)
       splitX <- by(1:ncol(X), list(cols), function(i)X[,i])      
     }else{
-      splitX <- list()
-      splitX[[1]] <- X
+      if(is.null(nMax)){
+        splitX <- list()
+        splitX[[1]] <- X
+      }else{
+        splitX <- list()
+        for(j in 1:nRand){
+          tmp <- data.frame(col=1:ncol(X), terms=terms)
+          tmp %>% group_by(terms) %>%
+            sample_n(min(nMax, n()))
+          splitX[[j]] <- X[,tmp$col]
+        }
+      }      
     }
-    arr <- array(dim=c(nrow(X), nRounds, k))
+    arr <- array(dim=c(nrow(X), length(splitX), k))
     for(i in 1:length(splitX)){
-      cat("\nEstimating GLRM Round ", i, " of ", nRounds, "\n", sep="")
+      cat("\nEstimating GLRM Round ", i, " of ", length(splitX), "\n", sep="")
       Xl <- lapply(as.data.frame(splitX[[i]]), as.factor)
       Xn <- do.call(data.frame, Xl)
       hX <- h2o::as.h2o(Xn)

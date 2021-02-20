@@ -44,7 +44,7 @@ gather_data <- function(x, ...,
   })
   out_dat <- out_dats[[1]]
   for(i in 2:length(out_dats)){
-    out_dat <- full_join(out_dat, out_dats[[i]])
+    out_dat <- full_join(out_dat, out_dats[[i]] %>% select(name, contains("Dim")))
   }
   if(!boot_sd){
     if("gs" %in% ortho){
@@ -101,7 +101,7 @@ gather_data <- function(x, ...,
     })
     out_se <- out_ses[[1]]
     for(i in 2:length(out_ses)){
-      out_se <- full_join(out_se, out_ses[[i]])
+      out_se <- full_join(out_se, out_ses[[i]] %>% select(name, contains("Dim")))
     }
     names(out_se) <- gsub("(Dim_\\d+)", "\\1_sd", names(out_se))
     out_dat <- full_join(out_dat, out_se)

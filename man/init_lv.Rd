@@ -11,6 +11,8 @@ init_lv(
   method = c("pca", "glrm"),
   k = 5,
   nRounds = 1,
+  nMax = NULL,
+  nRand = 1,
   h2o.init.args,
   h2o.glrm.args,
   ...
