@@ -27,5 +27,22 @@ sim_dwnom3 <- dwnominate(sim_rcl, model=3, polar=c(24,53))
 
 library(legR)
 
-l <- legR(X, trms, est_model = TRUE, nRounds=2, max_mem_size="8g", method="glrm", k=3, ndim=3, legis_data = h)
-lo <- gather_data(l, orthogonalize = "gs",)
+l <- legR(X, trms, est_model = TRUE, nRounds=1, max_mem_size="8g", method="glrm", k=3, ndim=3, legis_data = h)
+lo <- gather_data(l, orthogonalize = "gs")
+
+x1 <- l$mods[[1]]$means$x
+x1[which(x1 == 0, arr.ind=TRUE)] <- NA
+
+
+rd <- rio::import("/Users/david/Dropbox (DaveArmstrong)/RA_Toronto roll call votes/tor_rollcalls_pca_merged2_all.dta")
+
+
+get_label <- function(x){
+  out <- attr(x,"label")
+  if(is.null(out))out <- ""
+  out
+}
+
+rd <- rd %>% select(term, name, v_pop:q_initypegovt_pct) %>% select(-censusyear) %>% left_join(., lo %>% rename("term" = "session"))
+r1 <- rd %>% summarise(across(v_pop:q_initypegovt_pct, ~cor(.x, Dim_1, use="pair")))
+
