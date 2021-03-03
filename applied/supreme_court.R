@@ -48,6 +48,7 @@ out <- legR(votes, term, est_model=TRUE,
             minprop=.05, 
             nRounds=1, 
             nperterm=15, 
+            seed=5845,
             max_mem_size="8g")
 
 
