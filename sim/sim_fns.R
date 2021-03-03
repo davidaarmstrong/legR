@@ -257,3 +257,23 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
   h2o::h2o.shutdown(prompt = FALSE)
   return(res)
 }
+
+
+
+nav <- apply(as.matrix(votes[,-1]), 2, mean, na.rm=TRUE)
+
+whav <- which(nav < .1 | nav > .9)
+whav <- whav[-1]
+votes <- votes %>% select(-all_of(whav))
+trm <- gsub(".*_(\\d+)$", "\\1", names(votes)[-1])
+trm <- as.numeric(trm)
+
+j <- 5
+l1 <- leg %>% filter(term == trm[j])
+l1 <- left_join(l1, votes %>% select(1,(j+1)))
+names(l1)[5] <- "vote"
+
+m2 <- glm(vote ~ Dim_1 + Dim_2, data=l1, family=binomial)
+mv <- min(table(l1$vote))
+err <- sum(l1$vote != as.numeric(fitted(m2) > .5))
+

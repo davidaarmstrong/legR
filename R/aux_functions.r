@@ -130,8 +130,20 @@ rs <- function(x, l=-2, u=2){
 }
 
 getP <- function(x, ....){
-  b <- coef(x)[2]
-  s <- sqrt(diag(vcov(x)))[2]
-  p <- pnorm(abs(b/s), lower.tail=FALSE)
-  p
+  if(!inherits(x, "try-error")){
+    b <- coef(x)[2]
+    s <- sqrt(diag(vcov(x)))[2]
+    p <- pnorm(abs(b/s), lower.tail=FALSE)
+    p
+  }else{
+    NA
+  }
+}
+
+getCoef <- function(x, ....){
+  if(!inherits(x, "try-error")){
+    b <- coef(x)[2]
+  }else{
+    NA
+  }
 }

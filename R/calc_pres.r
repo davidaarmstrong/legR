@@ -34,10 +34,10 @@ calc_pres <- function(votes, initlv, ...){
   for(i in 1:ncol(votes)){
     tmp$vote <- votes[[i]]
     mods <- lapply(forms, function(f){
-      suppressWarnings(glm(as.formula(f), data=tmp, family=binomial))
+      try(glm(as.formula(f), data=tmp, family=binomial))
     })
     pres <- rbind(pres, sapply(mods, function(x)getPRE(x)$pre))
-    b <- rbind(b, sapply(mods, function(x)coef(x)[2]))
+    b <- rbind(b, sapply(mods, function(x)getCoef(x)))
     p <- rbind(p, sapply(mods, function(x)getP(x)))
     setTxtProgressBar(pb_pre,i)
   }

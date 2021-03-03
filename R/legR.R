@@ -54,10 +54,6 @@ legR <- function(X, terms, est_model=FALSE,
     X <- X[,trm_ord]
     pres <- calc_pres(X, ilv$lv, ...)
     best <- choose_best(pres$pres[,-1], ndim=ndim, ...)
-    if(!est_model){
-      return(list(best=best, pres=pres, X=X, terms=terms))
-      stop("Model evaluation not performed, best, pre and data returned to object\n")
-    }
   Xs <- lapply(1:max(best, na.rm=TRUE),
                function(i)list(X[, which(best == i)], terms[which(best == i)]))
 
@@ -68,6 +64,10 @@ legR <- function(X, terms, est_model=FALSE,
   b <- lapply(1:max(best, na.rm=TRUE), function(i){
     pres$b[cbind(which(best == i), i)]})
   starts <- lapply(1:length(dats), function(i)make_starts(dats[[i]]$dat, priors[[i]], b[[i]]))
+  if(!est_model){
+    ret <- list(dats=dats, priors=priors, starts=starts, ilv=ilv, pres=pres, best=best, legis_data=legis_data)
+    return(ret)
+  }
 mods <- lapply(1:length(dats), function(i){
    try(dynIRT(.data = dats[[i]]$dat,
                   .starts = starts[[i]],
