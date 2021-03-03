@@ -53,7 +53,7 @@ legR <- function(X, terms, est_model=FALSE,
     terms <- terms[trm_ord]
     X <- X[,trm_ord]
     pres <- calc_pres(X, ilv$lv, ...)
-    best <- choose_best(pres$pres[,-1], ndim=ndim, ...)
+    best <- choose_best(pres$pres[,-1], ndim=ndim, terms=terms, ...)
   Xs <- lapply(1:max(best, na.rm=TRUE),
                function(i)list(X[, which(best == i)], terms[which(best == i)]))
 

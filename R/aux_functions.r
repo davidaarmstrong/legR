@@ -147,3 +147,25 @@ getCoef <- function(x, ....){
     NA
   }
 }
+
+
+glmnet_fun <- function(form, data, ...){
+  l <- logistf(as.formula(form), data=data)
+  X <- model.matrix(as.formula(form), data)[,-1,drop=FALSE]
+  y <- model.response(model.frame(as.formula(form), data))
+  cv.out <- glmnet::cv.glmnet(X, y, family=binomial, penalty.factor=0)
+}
+
+##' @method predict logistf
+predict.logistf <- function(obj, type="response"){
+  ## this version of the predict function for Firth logit
+  ## is designed specifically for this application and is 
+  ## not a general-use function. 
+  type <- match.arg(type)
+  plogis(obj$linear.predictors)
+}
+
+firth_fun <- function(formula, data, ...){
+  logistf(formula, data)
+}
+

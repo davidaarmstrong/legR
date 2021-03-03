@@ -4,12 +4,14 @@
 \alias{calc_pres}
 \title{Calculate PRE}
 \usage{
-calc_pres(votes, initlv, ...)
+calc_pres(votes, initlv, glm_method = c("glm", "firth"), ...)
 }
 \arguments{
 \item{votes}{A matrix of votes}
 
 \item{initlv}{Initial estimate of latent variables}
+
+\item{glm_method}{Use either binomial glm or firth logistic regression to calculate coefficients and PRE.}
 
 \item{...}{Other arguments to be passed down}
 }

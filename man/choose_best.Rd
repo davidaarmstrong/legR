@@ -4,7 +4,15 @@
 \alias{choose_best}
 \title{Choose Best Dimension}
 \usage{
-choose_best(x, bestmin = 0, othermax = 0, ndim = NULL, ...)
+choose_best(
+  x,
+  bestmin = 0,
+  othermax = 0,
+  ndim = NULL,
+  terms = NULL,
+  nperterm = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A #Votes x #Dimensions matrix of PRE values.}
@@ -17,7 +25,11 @@ If \code{NULL}, the algorithm just chooses the first highest PRE, regardless
 of the other PRE values.}
 
 \item{ndim}{Scalar giving the number of dimensions to use.  The algorithm
-will use the first \code{ndim} columns of \code{x} in the calculation.
+will use the first \code{ndim} columns of \code{x} in the calculation.}
+
+\item{terms}{Vector indicating the term to which each bill belongs.}
+
+\item{nperterm}{Scalar giving the number of bills to use per term. 
 If \code{NULL}, all dimensions are used.}
 
 \item{...}{Other arguments to be passed down - currently not implemented.}

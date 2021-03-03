@@ -14,6 +14,8 @@
 #' of the other PRE values.
 #' @param ndim Scalar giving the number of dimensions to use.  The algorithm
 #' will use the first \code{ndim} columns of \code{x} in the calculation.
+#' @param terms Vector indicating the term to which each bill belongs. 
+#' @param nperterm Scalar giving the number of bills to use per term. 
 #' If \code{NULL}, all dimensions are used.
 #' @param ... Other arguments to be passed down - currently not implemented.
 #'
@@ -24,6 +26,8 @@ choose_best <- function(x,
                         bestmin=0, 
                         othermax=0, 
                         ndim=NULL, 
+                        terms = NULL, 
+                        nperterm = NULL,
                         ...){
   if(!is.null(ndim)){
     if(ndim > ncol(x)){
@@ -33,6 +37,7 @@ choose_best <- function(x,
   if(!is.null(ndim)){
     x <- x[,1:ndim]
   }
+  if(is.null(nperterm)){
     if(is.null(othermax)){
       best <- apply(x, 1, which.max)
     }else{
@@ -42,6 +47,16 @@ choose_best <- function(x,
         best <- ifelse(is.na(best), tmp, best)
       }
     }
+  }else{
+    diffs <- sapply(1:ncol(x), function(i)x[,i] - apply(x[,-i, drop=FALSE], 1, max, na.rm=TRUE))
+    best <- matrix(0, ncol=ncol(x), nrow=nrow(x))
+    for(j in 1:ncol(x)){
+      dd <- data.frame(col = 1:nrow(x), d= diffs[,j], terms=terms) %>% filter(d > 0)
+      nb <- dd %>% group_by(terms) %>% slice_max(order_by=d, n=nperterm)  
+      best[cbind(nb$col, j)] <- j
+    }
+    best <- rowSums(best)
+  }
   return(best)
 }
 

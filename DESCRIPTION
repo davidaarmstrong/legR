@@ -16,7 +16,8 @@ Imports: stats,
          Matrix, 
          rlang, 
          MASS, 
-         tidyr
+         tidyr, 
+         logistf
 Suggests: h2o
 License: GPL-2
 Encoding: UTF-8

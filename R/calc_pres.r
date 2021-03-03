@@ -7,6 +7,7 @@
 #'
 #' @param votes A matrix of votes
 #' @param initlv Initial estimate of latent variables
+#' @param glm_method Use either binomial glm or firth logistic regression to calculate coefficients and PRE. 
 #' @param ... Other arguments to be passed down
 #'
 #' @return A list with a matrix of PRE values and matrix of coefficients
@@ -14,18 +15,22 @@
 #' @importFrom stats as.formula
 #' @importFrom glue glue
 #' @importFrom dplyr mutate
+#' @importFrom logistf logistf
 #' @export
-calc_pres <- function(votes, initlv, ...){
+calc_pres <- function(votes, initlv, glm_method=c("glm", "firth"), ...){
+  glm_method=match.arg(glm_method)
   if(!is.data.frame(initlv)){
     initlv <- as.data.frame(initlv)
   }
   if(!is.data.frame(votes)){
     votes <- as.data.frame(votes)
   }
-  forms <- glue("vote ~ {names(initlv)}")
+  forms <- glue("vote ~ scale({names(initlv)})")
   tmp <- initlv %>%
     mutate(vote = NA)
-
+  glmfun <- switch(glm_method, 
+                   glm = glm, 
+                   firth = firth_fun)
 
   pres <- epres <- NULL
   cat("Calculating PREs\n")
@@ -34,16 +39,15 @@ calc_pres <- function(votes, initlv, ...){
   for(i in 1:ncol(votes)){
     tmp$vote <- votes[[i]]
     mods <- lapply(forms, function(f){
-      try(glm(as.formula(f), data=tmp, family=binomial))
+      try(glmfun(as.formula(f), data=tmp, family=binomial))
     })
-    pres <- rbind(pres, sapply(mods, function(x)getPRE(x)$pre))
+    pres <- rbind(pres, sapply(mods, function(x)getPRE(x, data=tmp)$pre))
     b <- rbind(b, sapply(mods, function(x)getCoef(x)))
-    p <- rbind(p, sapply(mods, function(x)getP(x)))
     setTxtProgressBar(pb_pre,i)
   }
   pres <- as.data.frame(pres)
   names(pres) <- glue("Dim{1:ncol(pres)}")
   out <- cbind(data.frame(proposal = colnames(votes)),
                pres)
-  list(pres=out, b = b, p=p)
+  list(pres=out, b = b)
 }

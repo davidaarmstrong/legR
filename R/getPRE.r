@@ -8,6 +8,7 @@
 #' predictions for ePRE).
 #' @param mod1 A model of class \code{glm} (with family \code{binomial}),
 #' \code{polr} or \code{multinom} for which (e)PRE will be calculated.
+#' @param data Data frame to be passed down to the function. 
 #' @return An object of class \code{pre}, which is a list with the following
 #' elements: \item{pre}{The proportional reduction in error} \item{epre}{The
 #' expected proportional reduction in error} \item{m1form}{The formula for
@@ -23,10 +24,10 @@
 #' @export
 #'
 #'
-getPRE <- function (mod1){
+getPRE <- function (mod1, data){
   if(!inherits(mod1, "try-error")){
     y <- mod1[["y"]]
-    mod2 <- update(mod1, ". ~ 1", data=model.frame(mod1))
+    mod2 <- glm(vote ~ 1, data=data, family=binomial)
     pred.mod2 <- as.numeric(predict(mod2, type = "response") >=
                               0.5)
     pmc <- mean(mod2$y == pred.mod2)

@@ -4,11 +4,13 @@
 \alias{getPRE}
 \title{Proportional and Expected Proportional Reductions in Error}
 \usage{
-getPRE(mod1)
+getPRE(mod1, data)
 }
 \arguments{
 \item{mod1}{A model of class \code{glm} (with family \code{binomial}),
 \code{polr} or \code{multinom} for which (e)PRE will be calculated.}
+
+\item{data}{Data frame to be passed down to the function.}
 }
 \value{
 An object of class \code{pre}, which is a list with the following
