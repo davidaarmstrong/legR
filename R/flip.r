@@ -33,7 +33,7 @@ flip <- function(data, id = "name", vars, time, ...){
     f <- 1
     for(i in 2:(ncol(dl)-1)){
       r <- cor(dl[,i][[1]], dl[,(i+1)][[1]], use="pair")
-      if(r > 0){
+      if(r > 0 | is.na(r)){
         flip <- c(flip, f)
       }else{
         f <- -f

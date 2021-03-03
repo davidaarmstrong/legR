@@ -23,7 +23,7 @@ orthogonalize <- function(x, ...){
     ivs <- glue_collapse(glue("Dim{1:max(1, (m-1))}_gs"), "+")
     form <- glue("Dim{m} ~ {ivs}")
     tmp_mod <- lm(form, data=out_orth)
-    out_orth[[glue("Dim{m}_gs")]] <- out_dat[[glue("Dim{m}")]] - predict(tmp_mod, newdata=out_orth)
+    out_orth[[glue("Dim{m}_gs")]] <- out_orth[[glue("Dim{m}")]] - predict(tmp_mod, newdata=out_orth)
     out_orth <- out_orth %>% select(-glue("Dim{m}"))
     if(has_sd){
       a <- coef(tmp_mod)
