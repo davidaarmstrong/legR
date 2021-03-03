@@ -25,6 +25,9 @@
 #' on the computational resources at hand, but we suggest the smalles value such that
 #' \code{ncol(X)}/\code{nRounds} < 5000 as a good place to start.  If set to \code{NULL}, 
 #' the algorithm uses \code{ceiling(ncol(X)/5000)}. 
+#' @param nRand Number of random samples from the input matrix to use 
+#' in producing the output. 
+#' @param nMax Maximum number of bills to take per term if \code{nRand} is bigger than 1. 
 #' @param h2o.init.args A list of arguments to be passed to \code{h2o.init}.
 #' @param h2o.glrm.args A list or arguments to be passed to \code{h2o.glrm}.
 #' @param ... Other arguments to be passed down - currently unimplemented.
@@ -83,22 +86,23 @@ init_lv <- function(X,
     x <- Xt %*%g %*% diag(1/sqrt(3*L))
   }else{
     do.call(h2o::h2o.init, h2o.init.args)  # connect to H2O instance
+    if(nRounds > 1 & nRand > 1)stop("Only one of nRounds or nRand can be bigger than 1\n")
     if(nRounds > 1){
       cols <- sample(1:nRounds, ncol(X), replace=TRUE)
       splitX <- by(1:ncol(X), list(cols), function(i)X[,i])      
-    }else{
-      if(is.null(nMax)){
-        splitX <- list()
-        splitX[[1]] <- X
-      }else{
-        splitX <- list()
-        for(j in 1:nRand){
-          tmp <- data.frame(col=1:ncol(X), terms=terms)
-          tmp %>% group_by(terms) %>%
-            sample_n(min(nMax, n()))
-          splitX[[j]] <- X[,tmp$col]
-        }
-      }      
+    }
+    if(nRand > 1){
+      splitX <- list()
+      for(j in 1:nRand){
+        tmp <- data.frame(col=1:ncol(X), terms=terms)
+        tmp %>% group_by(terms) %>%
+          sample_n(min(nMax, n()))
+        splitX[[j]] <- X[,tmp$col]
+      }
+    }      
+    if(nRand == 1 & nRounds == 1){
+      splitX <- list()
+      splitX[[1]] <- X
     }
     arr <- array(dim=c(nrow(X), length(splitX), k))
     for(i in 1:length(splitX)){

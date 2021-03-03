@@ -42,13 +42,13 @@ if(any(allna)){
 
 
 out <- legR(votes, term, est_model=TRUE, 
-            legis_data=legdat, k=5, ndim=2, 
+            legis_data=legdat, k=2, ndim=2, 
             method="glrm",
             glm_method="glm", 
-            minprop=.05, 
+            minprop=.1, 
             nRounds=1, 
-            nperterm=15, 
-            seed=5845,
+            nRand =10, 
+            nperterm=15,
             max_mem_size="8g")
 
 
@@ -81,6 +81,9 @@ mq <- mq %>%
   setNames(c("name", "session", "mqs"))
 
 g <- x %>% left_join(mq)
+
+cor(g[,5:7], use="pair")
+
 
 v <- out$ilv$votes
 trm <- out$ilv$terms
