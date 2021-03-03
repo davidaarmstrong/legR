@@ -83,11 +83,11 @@ apre.legR <- function(out, data){
   tmp <- out$legis_data
   data <- data %>% select(name, session, Dim_1, Dim_2)
   res <- NULL
-  for(i in 1:max(trm)){
+  for(i in 1:max(data$session)){
     w <- which(trm == i)
-    tmp <- suppressMessages(left_join(tmp %>% select(name), data %>% filter(session == i)))
+    tmp <- suppressMessages(left_join(tmp, data %>% filter(session == i)))
     for(j in 1:length(w)){
-      tmp$vote <- X[,w[j]]
+      tmp$vote <- X[,w[i]]
       m1 <- glm(vote ~ Dim_1, data=tmp)
       m2 <- glm(vote ~ Dim_1 + Dim_2, data=tmp)
       mv <- min(table(tmp$vote))
@@ -111,36 +111,14 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
                      s_range = c(-2,2), 
                      w_range = sort(runif(2, .05, 2.5), decreasing = FALSE), 
                      dim = 2, 
-                     n_votes = runif(1, 100, 1000),
-                     prop_votes = NULL,
+                     n_votes = runif(1, 100, 1000), 
                      prop_irrel = NULL, 
                      a_range = c(-1.5, -.5), 
-                     b_range = c(.75, 1.5), 
-                    ...){
+                     b_range = c(.75, 1.5)){
   
-  # n_per_term = ceiling(runif(1, 30,150))
-  # incumb_prop = runif(1, .4, .9)
-  # nterms = 10
-  # s_range = c(-2,2)
-  # w_range = sort(runif(2, .05, 2.5), decreasing = FALSE)
-  # dim = 2
-  # n_votes = 500
-  # prop_votes = .65
-  # prop_irrel = 0
-  # a_range = c(-1.5, -.5)
-  # b_range = c(.75, 1.5)
-  # nRounds <- 2
-
-  
-  
-  if(is.null(prop_votes)){
-    p1 <- runif(1, .5, .85)
-    p2 <- 1-p1
-  }else{
-    p1 <- prop_votes
-    p2 <- 1-p1
-  }
-  props <- c(p1, p2)
+  n1 <- rnorm(1, 10, 1)
+  n2 <- rnorm(1, 5, 1)
+  props <- sort(c(n1, n2)/(n1+n2), decreasing = TRUE)
   n_votes <- ceiling(n_votes*props)
   if(is.null(prop_irrel)){
     n_irrel <- ceiling(runif(1, .1, .6)*sum(n_votes))
@@ -150,7 +128,17 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
   
   
   
-
+  # n_per_term = 100
+  # incumb_prop = .8
+  # nterms = 10
+  # s_range = c(-2,2)
+  # w_range = c(.5, 1)
+  # dim = 2
+  # n_votes = c(500, 200)
+  # n_irrel = 0
+  # a_range = c(-1.5, -.5)
+  # b_range = c(.75, 1.5)
+  
   
   
   leg <- make_body(n_per_term=n_per_term, 
@@ -177,49 +165,24 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
     terms=trm, 
     legis_data=ld, 
     minprop=.1, 
+    nRounds = NULL, 
     k=2, 
     ndim=2, 
     method="glrm", 
-    max_mem_size="4g", 
-    est_model = TRUE, 
-    ...
+    max_mem_size="8g", 
+    est_model = TRUE
   )
   n_kept <- sapply(out$dats, function(x)ncol(x$dat$rc))
   if(!any(sapply(out$mods, inherits, "try-error"))){
-  sim_rcl <- list()
-  for(i in 1:10){
-    tmpv <- votes[, -1]
-    tmpv <- tmpv[, which(trm == i)]
-    wna <- which(apply(tmpv, 1, function(x)all(is.na(x))))
-    tmpv <- tmpv[-wna, ]
-    tmpl <- as.data.frame(ld)[-wna, ]
-    tmpl$party <- 1
-    sim_rcl[[i]] <- pscl::rollcall(as.data.frame(tmpv), 
-                                   legis.names=as.character(tmpl$name), 
-                                   legis.data=tmpl)  
-  }
- 
-  pols <- sapply(out$priors, function(x)which(x$x.mu0 == 1))
-  require(dwnominate)
-  dwn <- dwnominate(sim_rcl, polarity = pols)
-  dleg <- dwn$legislators %>% select(session, name, coord1D, coord2D)
-  
-  
-  
-  
     o <- gather_data(out, orthogonalize=c("gs", "pca"))
     leg <- setNames(leg, c("name", "session", "true1", "true2"))
     all <- left_join(leg, o)
-    all <- left_join(all, dleg %>% mutate(name = as.integer(name)))
-    save(out, all, file="sim_inter.rda")
     
-    r1 <- all %>% select(true1, Dim_1, Dim_1_gs, Dim_1_pca, coord1D) %>% cor(., use="pair") %>% .[,1]
-    r2 <- all %>% select(true2, Dim_2, Dim_2_gs, Dim_2_pca, coord2D) %>% cor(., use="pair") %>% .[,1]
-    a1 <- apre.legR(out, o)
-    a2 <- apre.legR(out, all %>% 
-                      select(name, session, coord1D, coord2D) %>% 
-                      rename("Dim_1" = "coord1D", "Dim_2" = "coord2D"))
-
+    r1 <- all %>% select(true1, Dim_1, Dim_1_gs, Dim_1_pca) %>% cor(., use="pair") %>% .[,1]
+    r2 <- all %>% select(true2, Dim_2, Dim_2_gs, Dim_2_pca) %>% cor(., use="pair") %>% .[,1]
+    a <- apre.legR(out, o)
+    
+    
     res <- list(r1 = r1, 
                 r2 = r2, 
                 params = c("n_per_term" = n_per_term, 
@@ -230,15 +193,13 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
                            "n2" = n_votes[2], 
                            "nk1" = n_kept[1], 
                            "nk2" = n_kept[2], 
-                           "aprel1" = a1[1], 
-                           "aprel2" = a1[2],
-                           "apred1" = a2[1], 
-                           "apred2" = a2[2], 
+                           "apre1" = a[1], 
+                           "apre2" = a[2], 
                            "n_irrel" = n_irrel)
     )
   }else{
-    res <- list(r1 = rep(NA, 5), 
-                r2 = rep(NA, 5), 
+    res <- list(r1 = rep(NA, 4), 
+                r2 = rep(NA, 4), 
                 params = c("n_per_term" = n_per_term, 
                            "incumb_prop" = incumb_prop, 
                            "w_low" = w_range[1], 
@@ -247,10 +208,8 @@ run_sim <- function(n_per_term = ceiling(runif(1, 30,150)),
                            "n2" = n_votes[2], 
                            "nk1" = n_kept[1], 
                            "nk2" = n_kept[2], 
-                           "aprel1" = NA, 
-                           "aprel2" = NA,
-                           "apred1" = NA, 
-                           "apred2" = NA, 
+                           "apre1" = NA, 
+                           "apre2" = NA, 
                            "n_irrel" = n_irrel))
     
   }
