@@ -47,31 +47,20 @@ out <- legR(votes, term, est_model=TRUE,
             glm_method="glm", 
             minprop=.1, 
             nRounds=1, 
-            nRand =10, 
+            nRand =1, 
             nperterm=15,
+#            seed=4324, # r= 0.703
+            seed=519, # r = 0.83
             max_mem_size="8g")
 
-
-x1 <- out$mods[[1]]$means$x
-colnames(x1) <- 1:ncol(x1)
-rownames(x1) <- out$dats[[1]]$id$name
-x1 <- as_tibble(x1, rownames="name")
-x1 <- x1 %>% pivot_longer(-name, names_to="session", values_to="Dim1") %>% 
-  mutate(session = as.numeric(session))
-
-x2 <- out$mods[[2]]$means$x
-colnames(x2) <- 1:ncol(x2)
-rownames(x2) <- out$dats[[2]]$id$name
-x2 <- as_tibble(x2, rownames="name")
-x2 <- x2 %>% pivot_longer(-name, names_to="session", values_to="Dim2") %>% 
-  mutate(session = as.numeric(session))
-x <- full_join(x1, x2)
-x <- x %>% mutate(across(starts_with("Dim"), ~ifelse(.x == 0, NA, .x)))
-x <- x %>% filter(!is.na(Dim1) | !is.na(Dim2))
-x <- x %>% 
-  ungroup %>% 
-  mutate(Dim1_gs = Dim1, 
-         Dim2_gs = Dim2 - predict(lm(Dim2 ~ Dim1, data=x), newdata=.))
+x <- gather_data(out)
+x <- orthogonalize(x)
+flipx <- flip(x, id="name", vars=c("Dim1_gs", "Dim2_gs"), time="session")
+x <- left_join(x, flipx %>% mutate(session = as.numeric(session)))
+## use the - in front of Dim1_gs*flip1 to make it positively related to mqs
+x <- x %>% mutate(Dim1_gs = -Dim1_gs*flip1,
+                  Dim2_gs = Dim2_gs*flip2) %>% 
+  select(-contains("flip"))
 
 
 mq <- import("applied/justices.dta")
@@ -83,6 +72,12 @@ mq <- mq %>%
 g <- x %>% left_join(mq)
 
 cor(g[,5:7], use="pair")
+
+
+r <- g %>% group_by(session) %>% 
+  summarise(r1 = cor(Dim1_gs, mqs, use="pair"), 
+            r2 = cor(Dim2_gs, mqs, use="pair"))
+
 
 
 v <- out$ilv$votes
@@ -108,6 +103,9 @@ for(i in 1:length(vs)){
   }
 }
 
+
 sum(vstats[,1]-vstats[,2])/sum(vstats[,1])
 sum(vstats[,1]-vstats[,3])/sum(vstats[,1])
 sum(vstats[,1]-vstats[,4])/sum(vstats[,1])
+
+

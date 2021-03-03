@@ -51,8 +51,8 @@ choose_best <- function(x,
     diffs <- sapply(1:ncol(x), function(i)x[,i] - apply(x[,-i, drop=FALSE], 1, max, na.rm=TRUE))
     best <- matrix(0, ncol=ncol(x), nrow=nrow(x))
     for(j in 1:ncol(x)){
-      dd <- data.frame(col = 1:nrow(x), d= diffs[,j], terms=terms) %>% filter(d > 0)
-      nb <- dd %>% group_by(terms) %>% slice_max(order_by=d, n=nperterm)  
+      dd <- data.frame(col = 1:nrow(x), d= diffs[,j], terms=terms) %>% filter(.data$d > 0)
+      nb <- dd %>% group_by(terms) %>% slice_max(order_by=.data$d, n=nperterm)  
       best[cbind(nb$col, j)] <- j
     }
     best <- rowSums(best)

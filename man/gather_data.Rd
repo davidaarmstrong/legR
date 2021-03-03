@@ -9,8 +9,7 @@ gather_data(
   ...,
   boot_sd = FALSE,
   Nboot = 100,
-  dynIRT_control = list(threads = 1, verbose = TRUE, thresh = 1e-06, maxit = 500),
-  orthogonalize = c("none", "gs", "pca")
+  dynIRT_control = list(threads = 1, verbose = TRUE, thresh = 1e-06, maxit = 500)
 )
 }
 \arguments{
@@ -24,12 +23,6 @@ gather_data(
 posterior standard deviation.}
 
 \item{dynIRT_control}{A list of control parameters for the dynamic IRT models.}
-
-\item{orthogonalize}{Character string giving the kind of orthogonalization to be done,
-including \code{"none"}, \code{"gs"} for Gram-Schmidt (i.e., residualization)
-or \code{"pca"} indicating a principal components orthogonalization.  Both orthogonalization options
-are done on the posterior means and that same transform is applied to all iterations to get
-appropriate uncertainty estimates for the orthogonalized variables.}
 }
 \value{
 A data frame with latent variable estimates.

@@ -35,7 +35,7 @@
 #' @return A list with the reduced set of votes, their corresponding terms
 #' and an n x k matrix of latent variable estimates.
 #' @importFrom stats princomp binomial coef glm na.omit plogis sd cov
-#' @importFrom dplyr group_by
+#' @importFrom dplyr group_by sample_n n
 #' @importFrom utils installed.packages
 #' @importFrom magrittr `%>%`
 #' @importFrom RSpectra eigs_sym

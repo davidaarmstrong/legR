@@ -43,6 +43,11 @@ on the computational resources at hand, but we suggest the smalles value such th
 \code{ncol(X)}/\code{nRounds} < 5000 as a good place to start.  If set to \code{NULL}, 
 the algorithm uses \code{ceiling(ncol(X)/5000)}.}
 
+\item{nMax}{Maximum number of bills to take per term if \code{nRand} is bigger than 1.}
+
+\item{nRand}{Number of random samples from the input matrix to use 
+in producing the output.}
+
 \item{h2o.init.args}{A list of arguments to be passed to \code{h2o.init}.}
 
 \item{h2o.glrm.args}{A list or arguments to be passed to \code{h2o.glrm}.}
