@@ -1,5 +1,6 @@
 library(rio)
 library(tidyverse)
+library(glue)
 sc <- import("applied/SCDB_2020_01.dta")
 
 
@@ -50,10 +51,13 @@ out <- legR(votes, term, est_model=TRUE,
             nRand =1, 
             nperterm=15,
 #            seed=4324, # r= 0.703
-            seed=519, # r = 0.83
+#            seed=519, # r = 0.83
+            seed=734, # 
             max_mem_size="8g")
 
 x <- gather_data(out)
+x <- x %>% filter(!((Dim1 == 0 | is.na(Dim1)) & 
+                     Dim2 ==0 | is.na(Dim2)))
 x <- orthogonalize(x)
 flipx <- flip(x, id="name", vars=c("Dim1_gs", "Dim2_gs"), time="session")
 x <- left_join(x, flipx %>% mutate(session = as.numeric(session)))
@@ -107,5 +111,101 @@ for(i in 1:length(vs)){
 sum(vstats[,1]-vstats[,2])/sum(vstats[,1])
 sum(vstats[,1]-vstats[,3])/sum(vstats[,1])
 sum(vstats[,1]-vstats[,4])/sum(vstats[,1])
+
+
+
+### Plot Trajectories
+
+locs <- function(quadrant, plotObj, xloc = NULL, yloc=NULL){
+  if(!inherits(plotObj, "ggplot_built")){
+    plotObj <- try(ggplot_build(plotObj))
+  }
+  if(inherits(plotObj, "try-error"))stop("plotObj must be a ggplot or the output from ggplot_build()\n")
+  if(is.null(xloc)){
+    xloc <- switch(quadrant, 
+                   q1 = c(.05, .45), 
+                   q2 = c(.55, .95), 
+                   q3 = c(.55, .95), 
+                   q4 = c(.05, .45))
+  }
+  if(is.null(yloc)){
+    yloc <- switch(quadrant, 
+                   q1 = c(.55, .95), 
+                   q2 = c(.55, .95), 
+                   q3 = c(.05, .45), 
+                   q4 = c(.05, .45))
+  }
+  rx <- plotObj$layout$panel_params[[1]]$x.range
+  ry <- plotObj$layout$panel_params[[1]]$y.range
+  drx <- diff(rx)
+  dry <- diff(ry)
+  xmin <- rx[1] + xloc[1]*drx
+  xmax <- rx[1] + xloc[2]*drx
+  ymin <- ry[1] + yloc[1]*dry
+  ymax <- ry[1] + yloc[2]*dry
+  c(xmin, xmax, ymin, ymax)
+}
+
+
+tmp <- g %>% filter(name == "RBGinsburg") %>% 
+  arrange(session) %>% 
+  mutate(l1 = lag(Dim1_gs), 
+         l2 = lag(Dim2_gs))
+
+p1 <- ggplot(tmp) + 
+  geom_segment(aes(x = l1, xend=Dim1_gs, 
+                   y=l2, yend=Dim2_gs)) + 
+  geom_vline(xintercept=0) + 
+  geom_hline(yintercept=0) + 
+  theme_bw() + 
+  theme(panel.grid=element_blank()) + 
+  coord_cartesian(xlim=range(g$Dim1_gs, na.rm=TRUE), 
+                  ylim=range(g$Dim2_gs, na.rm=TRUE)) + 
+  labs(x="", y="") 
+p2 <- 
+  ggplot(tmp) + 
+  geom_segment(aes(x = l1, xend=Dim1_gs, 
+                   y=l2, yend=Dim2_gs)) + 
+  geom_point(aes(x=Dim1_gs, y=Dim2_gs), size=5) +
+  geom_text(aes(x=Dim1_gs, y=Dim2_gs,
+                label=session), col="white", size=3) +
+  theme_classic() + 
+  labs(x="Dimension 1", y="Dimension 2") + 
+  ggtitle(tmp$name[1])
+
+
+
+l <- locs("q4", p2, xloc=c(0,.4), yloc=c(.1,.5))
+
+p2 + annotation_custom(ggplotGrob(p1), 
+                       xmin=l[1], 
+                       xmax=l[2], 
+                       ymin=l[3], 
+                       ymax=l[4])
+
+ggsave(glue("applied/sc_plots/{tmp$name[1]}.png"), 
+      height=8, width=8, units="in", dpi=150)
+
+
+
+
+
+library(pROC)
+
+m1 <- glm(vote ~ Dim1_gs + Dim2_gs, data=sub1, family=binomial)
+m1a <- glm(vote ~ Dim1_gs , data=sub1, family=binomial)
+m2 <- glm(vote ~ mqs, data=sub1, family=binomial)
+
+auc_mod <- function(mod){
+  roc_obj <- pROC::roc(mod$y, mod$fitted)
+  pROC::auc(roc_obj)
+}
+
+auc_mod(m1)
+auc_mod(m1a)
+auc_mod(m2)
+
+
+
 
 

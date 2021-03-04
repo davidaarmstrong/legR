@@ -1,3 +1,7 @@
+## project specific files
+/applied/sc_plots/
+
+
 # History files
 .Rhistory
 .Rapp.history
@@ -39,3 +43,4 @@ vignettes/*.pdf
 .Renviron
 
 .DS_Store
+
