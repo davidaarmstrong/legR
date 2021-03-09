@@ -1,8 +1,7 @@
 #' Reflect Latent Variable Estimates
 #'
-#' Uses correlations from adjacent time-points to determine
-#' which times should be reflected over the zero line (i.e., 
-#' multiplied by -1) 
+#' Identifies reflections that minimize the distance of  adjacent 
+#' time-points on the same latent variable
 #' 
 #' @param data A data frame or tibble produced with \code{gather_data}.
 #' @param id Character string giving the name(s) of the ID variable(s) 
@@ -30,15 +29,19 @@ flip <- function(data, id = "name", vars, time, ...){
       pivot_wider(names_from=all_of(time), 
                   values_from=all_of(vars[j]))
     flip <- 1
-    f <- 1
-    for(i in 2:(ncol(dl)-1)){
-      r <- cor(dl[,i][[1]], dl[,(i+1)][[1]], use="pair")
-      if(r > 0 | is.na(r)){
-        flip <- c(flip, f)
-      }else{
-        f <- -f
-        flip <- c(flip, f)
-      }
+    for(i in 3:ncol(dl)){
+      d1 <- dl %>% 
+        select(c(i-1, i)) %>% 
+        as.matrix() 
+      d1 <- apply(d1, 1, function(x)(x[1]-x[2])^2) 
+      d1 <- sum(d1, na.rm=TRUE)
+      d2 <- dl %>% 
+        select(c(i-1, i)) %>% 
+        as.matrix() 
+      d2 <- apply(d2, 1, function(x)(x[1]+x[2])^2) 
+      d2 <- sum(d2, na.rm=TRUE)
+      dl[,i][[1]] <- dl[,i][[1]] * ifelse(d2 < d1, -1, 1)
+      flip <- c(flip, ifelse(d2 < d1, -1, 1))
     }
     flip_inds[[j]] <- flip
   }
