@@ -12,6 +12,9 @@ legR(
   priors = NULL,
   k = 5,
   ndim = 2,
+  nperterm = NULL,
+  bestmin = 0,
+  othermax = 0,
   dynIRT_control = list(threads = 1, verbose = TRUE, thresh = 1e-06, maxit = 500),
   ...
 )
@@ -38,6 +41,15 @@ list of priors of the same length as the dimensionality being estimated.}
 \item{k}{Number of dimensions for the GLRM to estimate.}
 
 \item{ndim}{Number of dimensions of the dynamic IRT model to be estimated.}
+
+\item{nperterm}{Minimum number of bills to include per term.}
+
+\item{bestmin}{Scalar indicating the minimum PRE value to be
+considered "well predicted" bythe model.}
+
+\item{othermax}{Scalar indicating the maximum PRE of the inferior dimension.
+If \code{NULL}, the algorithm just chooses the first highest PRE, regardless
+of the other PRE values.}
 
 \item{dynIRT_control}{A list containing control parameters for the dynamic
 IRT model.  See the \code{\link{dynIRT}} documentation from the \code{emIRT} package.}

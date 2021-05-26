@@ -15,8 +15,14 @@
 #' @param legis_data A data frame giving information about the legislators whose
 #' votes are in \code{X}.  The only requirement is that the variable identifying the observations
 #' be called \code{"name"}.
+#' @param nperterm Minimum number of bills to include per term.
 #' @param k Number of dimensions for the GLRM to estimate. 
 #' @param ndim Number of dimensions of the dynamic IRT model to be estimated. 
+#' @param bestmin Scalar indicating the minimum PRE value to be
+#' considered "well predicted" bythe model.
+#' @param othermax Scalar indicating the maximum PRE of the inferior dimension.
+#' If \code{NULL}, the algorithm just chooses the first highest PRE, regardless
+#' of the other PRE values.
 #' @param dynIRT_control A list containing control parameters for the dynamic
 #' IRT model.  See the \code{\link{dynIRT}} documentation from the \code{emIRT} package.
 #' @param ... Other arguments to be passed down to \code{init_lv}, \code{calc_pres},
@@ -29,9 +35,16 @@
 #' @importFrom emIRT dynIRT
 #' @export
 #'
-legR <- function(X, terms, est_model=FALSE,
-                 legis_data=NULL, priors = NULL,
-                 k = 5, ndim = 2, 
+legR <- function(X, 
+                 terms, 
+                 est_model=FALSE,
+                 legis_data=NULL, 
+                 priors = NULL,
+                 k = 5, 
+                 ndim = 2, 
+                 nperterm = NULL, 
+                 bestmin = 0, 
+                 othermax = 0, 
                  dynIRT_control = list(threads = 1,verbose = TRUE, thresh = 1e-6, maxit=500), ...){
   if(!all(c(as.matrix(X)) %in% c(0,1,NA)))stop("Voting matrix can only conatin 0, 1 or NA\n")
   if(is.null(legis_data)){
@@ -53,7 +66,13 @@ legR <- function(X, terms, est_model=FALSE,
     terms <- terms[trm_ord]
     X <- X[,trm_ord]
     pres <- calc_pres(X, ilv$lv, ...)
-    best <- choose_best(pres$pres[,-1], ndim=ndim, terms=terms, ...)
+    best <- choose_best(pres$pres[,-1], 
+                        ndim=ndim, 
+                        terms=terms, 
+                        nperterm=nperterm, 
+                        bestmin = bestmin, 
+                        othermax = othermax, 
+                        ...)
   Xs <- lapply(1:max(best, na.rm=TRUE),
                function(i)list(X[, which(best == i)], terms[which(best == i)]))
 

@@ -26,7 +26,6 @@ evaluated dimension.  This can be merged with the original data and
 can be used to make the appropriate reflections of the latent variables.
 }
 \description{
-Uses correlations from adjacent time-points to determine
-which times should be reflected over the zero line (i.e., 
-multiplied by -1)
+Identifies reflections that minimize the distance of  adjacent 
+time-points on the same latent variable
 }
