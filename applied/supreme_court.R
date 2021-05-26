@@ -16,11 +16,14 @@ legdat <- data.frame(name = unjust)
 votes <- matrix(nrow=length(unjust), ncol=length(undock))
 votes <- sc %>% select(justiceName, docketId, vote) %>% 
   pivot_wider(names_from="docketId", values_from="vote")
+docks <- names(votes)[-1]
 votes <- as.data.frame(votes)
 rownames(votes) <- votes[,1]
 votes <- votes[,-1]
 votes <- as.matrix(votes)
 colnames(votes) <- paste0("V", 1:ncol(votes))
+dock_v <- cbind(docks, colnames(votes))
+
 term <- sc %>% 
   group_by(docketId) %>% 
   summarise(term=first(term)) %>% 
@@ -33,11 +36,14 @@ term <- term-1945
 const <- apply(votes, 2, sd, na.rm=TRUE) == 0
 votes <- votes[,-which(const)]
 term <- term[-which(const)]
+dock_v <- dock_v[-which(const), ]
+
 
 allna <- apply(votes,2, function(x)all(is.na(x)))
 if(any(allna)){
   votes <- votes[,-which(allna)]
   term <- term[-which(allna)]
+  dock_v <- dock_v[-which(allna), ]
 }
 
 
