@@ -15,6 +15,7 @@ init_lv(
   nRand = 1,
   h2o.init.args,
   h2o.glrm.args,
+  seed = NULL,
   ...
 )
 }
@@ -51,6 +52,8 @@ in producing the output.}
 \item{h2o.init.args}{A list of arguments to be passed to \code{h2o.init}.}
 
 \item{h2o.glrm.args}{A list or arguments to be passed to \code{h2o.glrm}.}
+
+\item{seed}{Random number generator seed.}
 
 \item{...}{Other arguments to be passed down - currently unimplemented.}
 }

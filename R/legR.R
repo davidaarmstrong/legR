@@ -25,6 +25,7 @@
 #' of the other PRE values.
 #' @param dynIRT_control A list containing control parameters for the dynamic
 #' IRT model.  See the \code{\link{dynIRT}} documentation from the \code{emIRT} package.
+#' @param seed Random number generator seed passed down to estimation functions. 
 #' @param ... Other arguments to be passed down to \code{init_lv}, \code{calc_pres},
 #' \code{remove_lop}.
 #'
@@ -45,7 +46,8 @@ legR <- function(X,
                  nperterm = NULL, 
                  bestmin = 0, 
                  othermax = 0, 
-                 dynIRT_control = list(threads = 1,verbose = TRUE, thresh = 1e-6, maxit=500), ...){
+                 dynIRT_control = list(threads = 1,verbose = TRUE, thresh = 1e-6, maxit=500),
+                 seed=519, ...){
   if(!all(c(as.matrix(X)) %in% c(0,1,NA)))stop("Voting matrix can only conatin 0, 1 or NA\n")
   if(is.null(legis_data)){
     if(is.null(rownames(X))){
@@ -57,8 +59,9 @@ legR <- function(X,
     ilv <- init_lv(X,
                    k=k,
                    terms=terms,
-                   h2o.glrm.args = h2o.glrm.ctrl(...),
+                   h2o.glrm.args = h2o.glrm.ctrl(seed=seed, ...),
                    h2o.init.args = h2o.init.ctrl(...),
+                   seed=seed,
                    ...)
     X <- ilv$votes
     terms <- ilv$terms
@@ -87,7 +90,9 @@ legR <- function(X,
     ret <- list(dats=dats, priors=priors, starts=starts, ilv=ilv, pres=pres, best=best, legis_data=legis_data)
     return(ret)
   }
+  cat("Setting RNG seed to ", seed, "\n", sep="")
 mods <- lapply(1:length(dats), function(i){
+   set.seed(seed)
    try(dynIRT(.data = dats[[i]]$dat,
                   .starts = starts[[i]],
                   .priors = priors[[i]],

@@ -16,6 +16,7 @@ legR(
   bestmin = 0,
   othermax = 0,
   dynIRT_control = list(threads = 1, verbose = TRUE, thresh = 1e-06, maxit = 500),
+  seed = 519,
   ...
 )
 }
@@ -53,6 +54,8 @@ of the other PRE values.}
 
 \item{dynIRT_control}{A list containing control parameters for the dynamic
 IRT model.  See the \code{\link{dynIRT}} documentation from the \code{emIRT} package.}
+
+\item{seed}{Random number generator seed passed down to estimation functions.}
 
 \item{...}{Other arguments to be passed down to \code{init_lv}, \code{calc_pres},
 \code{remove_lop}.}

@@ -30,6 +30,7 @@
 #' @param nMax Maximum number of bills to take per term if \code{nRand} is bigger than 1. 
 #' @param h2o.init.args A list of arguments to be passed to \code{h2o.init}.
 #' @param h2o.glrm.args A list or arguments to be passed to \code{h2o.glrm}.
+#' @param seed Random number generator seed. 
 #' @param ... Other arguments to be passed down - currently unimplemented.
 #'
 #' @return A list with the reduced set of votes, their corresponding terms
@@ -52,6 +53,7 @@ init_lv <- function(X,
                     nRand = 1, 
                     h2o.init.args,
                     h2o.glrm.args,
+                    seed=NULL,
                     ...){
   meth <- match.arg(method)
   if(length(terms) != ncol(X)){
@@ -88,10 +90,12 @@ init_lv <- function(X,
     do.call(h2o::h2o.init, h2o.init.args)  # connect to H2O instance
     if(nRounds > 1 & nRand > 1)stop("Only one of nRounds or nRand can be bigger than 1\n")
     if(nRounds > 1){
+      set.seed(seed)
       cols <- sample(1:nRounds, ncol(X), replace=TRUE)
       splitX <- by(1:ncol(X), list(cols), function(i)X[,i])      
     }
     if(nRand > 1){
+      set.seed(seed)
       splitX <- list()
       for(j in 1:nRand){
         tmp <- data.frame(col=1:ncol(X), terms=terms)
