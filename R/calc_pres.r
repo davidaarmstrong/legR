@@ -38,9 +38,11 @@ calc_pres <- function(votes, initlv, glm_method=c("glm", "firth"), ...){
   b <- p <- NULL
   for(i in 1:ncol(votes)){
     tmp$vote <- votes[[i]]
+    sink(tempfile())
     mods <- lapply(forms, function(f){
-      try(glmfun(as.formula(f), data=tmp, family=binomial))
+      try(suppressWarnings(glmfun(as.formula(f), data=tmp, family=binomial)))
     })
+    sink()
     pres <- rbind(pres, sapply(mods, function(x)getPRE(x, data=tmp)$pre))
     b <- rbind(b, sapply(mods, function(x)getCoef(x)))
     setTxtProgressBar(pb_pre,i)
