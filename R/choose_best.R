@@ -37,16 +37,34 @@ choose_best <- function(x,
   if(!is.null(ndim)){
     x <- x[,1:ndim]
   }
-  if(is.null(nperterm)){
-    if(is.null(othermax)){
-      best <- apply(x, 1, which.max)
-    }else{
-      best <- rep(NA, nrow(x))
-      for(i in 1:ncol(x)){
-        tmp <- apply(x, 1, function(x)ifelse(x[i] > bestmin & all(x[-i] <= othermax), i, NA))
-        best <- ifelse(is.na(best), tmp, best)
-      }
+  if(is.null(othermax)){
+    best <- apply(x, 1, which.max)
+  }else{
+    best <- rep(NA, nrow(x))
+    for(i in 1:ncol(x)){
+      tmp <- apply(x, 1, function(x)ifelse(x[i] > bestmin & all(x[-i] <= othermax), i, NA))
+      best <- ifelse(is.na(best), tmp, best)
     }
+  }
+  tab <- table(best, terms)
+  w <- which(tab < nperterm, arr.ind=TRUE)
+  rowmax <- function(x)apply(x, 1, max)
+  if(length(w) > 0){
+    crit <- NULL
+    for(i in 1:ncol(x)){
+      crit <- cbind(crit, x[,i] * (1-rowmax(x[,-i, drop=FALSE])))
+    }
+    for(i in 1:nrow(w)){
+      trm_inds <- which(terms == w[i,2])
+      qtl <- nperterm/length(trm_inds)
+      c_qtl <- quantile(crit[trm_inds, w[,i]], 1-qtl)
+      x[trm_inds, w[i,1]]      
+    }
+  }
+  
+  
+  
+  if(is.null(nperterm)){
   }else{
     diffs <- sapply(1:ncol(x), function(i)x[,i] - apply(x[,-i, drop=FALSE], 1, max, na.rm=TRUE))
     best <- matrix(0, ncol=ncol(x), nrow=nrow(x))
