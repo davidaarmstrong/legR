@@ -76,8 +76,8 @@ legR <- function(X,
                         bestmin = bestmin, 
                         othermax = othermax, 
                         ...)
-  Xs <- lapply(1:max(best, na.rm=TRUE),
-               function(i)list(X[, which(best == i)], terms[which(best == i)]))
+  Xs <- lapply(1:ncol(best),
+               function(i)list(X[, which(best[,i] == 1)], terms[which(best[,i] == 1)]))
 
   dats <- lapply(Xs, function(x)make_data(x[[1]], x[[2]], legis_data))
   if(is.null(priors)){
