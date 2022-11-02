@@ -29,6 +29,7 @@ choose_best <- function(x,
                         terms = NULL, 
                         nperterm = NULL,
                         ...){
+  rowmax <- function(x)apply(x, 1, max)
   if(!is.null(ndim)){
     if(ndim > ncol(x)){
       ndim <- NULL
@@ -38,18 +39,25 @@ choose_best <- function(x,
     x <- x[,1:ndim]
   }
   if(is.null(othermax)){
-    best <- apply(x, 1, which.max)
+    best <- apply(x, 2, \(z)as.numeric(z == rowmax(x)))
   }else{
-    best <- rep(NA, nrow(x))
+    best <- matrix(NA, nrow= nrow(x), ncol=ncol(x))
     for(i in 1:ncol(x)){
-      tmp <- apply(x, 1, function(x)ifelse(x[i] > bestmin & all(x[-i] <= othermax), i, NA))
-      best <- ifelse(is.na(best), tmp, best)
+      tmp <- apply(x, 1, function(x)ifelse(x[i] > bestmin & all(x[-i] <= othermax), 1, NA))
+      best[,i] <- ifelse(is.na(best[,i]), tmp, best)
     }
   }
-  tab <- table(best, terms)
-  w <- which(tab < nperterm, arr.ind=TRUE)
-  rowmax <- function(x)apply(x, 1, max)
-  if(length(w) > 0){
+  if(!is.null(nperterm)){
+  tabs <- lapply(1:ncol(best), \(x)table(best[,x], terms))
+  tabs <- lapply(tabs, \(x)colnames(x)[which(x < nperterm)])
+  w <- NULL
+  if(any(sapply(tabs, length) > 0)){
+    for(j in 1:length(tabs)){
+      w <- rbind(w, cbind(j, as.numeric(tabs[[j]])))  
+    }
+    
+  }
+  if(nrow(w) > 0){
     crit <- NULL
     for(i in 1:ncol(x)){
       crit <- cbind(crit, x[,i] * (1-rowmax(x[,-i, drop=FALSE])))
@@ -57,23 +65,12 @@ choose_best <- function(x,
     for(i in 1:nrow(w)){
       trm_inds <- which(terms == w[i,2])
       qtl <- nperterm/length(trm_inds)
-      c_qtl <- quantile(crit[trm_inds, w[,i]], 1-qtl)
-      x[trm_inds, w[i,1]]      
+      qtl <- min(1,qtl)
+      qtl <- max(0, qtl)
+      c_qtl <- quantile(crit[trm_inds, w[i,1]], 1-qtl)
+      best[trm_inds[which(crit[trm_inds, w[i,1]] >= c_qtl)], w[i,1]] <- 1
+      }
     }
-  }
-  
-  
-  
-  if(is.null(nperterm)){
-  }else{
-    diffs <- sapply(1:ncol(x), function(i)x[,i] - apply(x[,-i, drop=FALSE], 1, max, na.rm=TRUE))
-    best <- matrix(0, ncol=ncol(x), nrow=nrow(x))
-    for(j in 1:ncol(x)){
-      dd <- data.frame(col = 1:nrow(x), d= diffs[,j], terms=terms) %>% filter(.data$d > 0)
-      nb <- dd %>% group_by(terms) %>% slice_max(order_by=.data$d, n=nperterm)  
-      best[cbind(nb$col, j)] <- j
-    }
-    best <- rowSums(best)
   }
   return(best)
 }
