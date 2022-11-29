@@ -49,11 +49,13 @@ choose_best <- function(x,
   }
   if(!is.null(nperterm)){
   tabs <- lapply(1:ncol(best), \(x)table(best[,x], terms))
-  tabs <- lapply(tabs, \(x)colnames(x)[which(x < nperterm)])
+  tabs <- lapply(tabs, \(x)colnames(x)[which(x["1", ] < nperterm)])
   w <- NULL
   if(any(sapply(tabs, length) > 0)){
     for(j in 1:length(tabs)){
-      w <- rbind(w, cbind(j, as.numeric(tabs[[j]])))  
+      if(length(tabs[[j]]) > 0){
+        w <- rbind(w, cbind(j, as.numeric(tabs[[j]])))  
+      }
     }
     
   }
@@ -74,4 +76,5 @@ choose_best <- function(x,
   }
   return(best)
 }
+
 
