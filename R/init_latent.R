@@ -116,6 +116,7 @@ init_lv <- function(X,
       hX <- h2o::as.h2o(Xn)
       h2o.glrm.args$training_frame = hX
       h2o.glrm.args$k <- k
+      h2o.glrm.args$seed <- seed
       out <- do.call(h2o::h2o.glrm, h2o.glrm.args)
       gframe <- h2o::h2o.getFrame(out@model$representation_name)
       gp <- princomp(gframe)
