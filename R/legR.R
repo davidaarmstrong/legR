@@ -76,15 +76,15 @@ legR <- function(X,
                         bestmin = bestmin, 
                         othermax = othermax, 
                         ...)
-  Xs <- lapply(1:max(best, na.rm=TRUE),
-               function(i)list(X[, which(best == i)], terms[which(best == i)]))
+  Xs <- lapply(1:ncol(best),
+               function(i)list(X[, which(best[,i] == 1)], terms[which(best[,i] == 1)]))
 
   dats <- lapply(Xs, function(x)make_data(x[[1]], x[[2]], legis_data))
   if(is.null(priors)){
     priors <- lapply(dats, function(x)make_priors(x$dat$rc))
   }
-  b <- lapply(1:max(best, na.rm=TRUE), function(i){
-    pres$b[cbind(which(best == i), i)]})
+  b <- lapply(1:ncol(best), function(i){
+    pres$b[cbind(which(best[,i] == 1), i)]})
   starts <- lapply(1:length(dats), function(i)make_starts(dats[[i]]$dat, priors[[i]], b[[i]]))
   if(!est_model){
     ret <- list(dats=dats, priors=priors, starts=starts, ilv=ilv, pres=pres, best=best, legis_data=legis_data)
