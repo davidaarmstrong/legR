@@ -59,7 +59,7 @@ choose_best <- function(x,
     }
     
   }
-  if(nrow(w) > 0){
+  if(!is.null(w)){
     crit <- NULL
     for(i in 1:ncol(x)){
       crit <- cbind(crit, x[,i] * (1-rowmax(x[,-i, drop=FALSE])))
