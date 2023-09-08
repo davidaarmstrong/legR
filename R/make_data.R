@@ -15,7 +15,7 @@
 make_data <- function(X, terms, legis_data=NULL,...){
   rc <- rollcall(as.data.frame(X), yea=1, nay=0, missing=NA)
   cX <- convertRC(rc)
-  l1 <- t(apply(X, 1, function(x)range(terms[which(!is.na(x))])))
+  l1 <- t(apply(X, 1, function(x)range(terms[which(!is.na(x))], na.rm=TRUE)))
   inds1 <- which(is.finite(l1[,1]))
   ld1 <- legis_data[which(is.finite(l1[,1])), , drop=FALSE]
   v1 <- cX$votes[which(is.finite(l1[,1])), ]
