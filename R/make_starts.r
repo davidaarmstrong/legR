@@ -12,6 +12,9 @@
 #'
 #'
 make_starts <- function(data, priors, b, ...){
+  if(any(is.na(b))){
+    b <- ifelse(is.na(b), 0, b)
+  }
   xb <- c(Matrix(data$rc) %*% b)
   xb <- xb[[1]][,1]
   anchors <- which(priors$x.mu0 != 0)
