@@ -129,6 +129,7 @@ init_lv <- function(X,
       pp <- cbind(pp, princomp(arr[,,i])$scores[,1])
     }
     x <- princomp(pp)$scores
+    try(h2o::h2o.shutdown(prompt=FALSE))
   }
   return(list(votes = X, terms=terms, lv= x))
 }
