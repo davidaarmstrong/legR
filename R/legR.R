@@ -90,13 +90,14 @@ legR <- function(X,
     ret <- list(dats=dats, priors=priors, starts=starts, ilv=ilv, pres=pres, best=best, legis_data=legis_data)
     return(ret)
   }
-  cat("Setting RNG seed to ", seed, "\n", sep="")
+  message(paste("Setting RNG seed to ", seed, "\n", sep=""))
 mods <- lapply(1:length(dats), function(i){
-   set.seed(seed)
-   try(dynIRT(.data = dats[[i]]$dat,
+   try({
+     set.seed(seed)
+     dynIRT(.data = dats[[i]]$dat,
                   .starts = starts[[i]],
                   .priors = priors[[i]],
-                  .control = dynIRT_control))
+                  .control = dynIRT_control)})
 
   })
   ret <- list(mods=mods, dats=dats, priors=priors, starts=starts, ilv=ilv, pres=pres, best=best, legis_data=legis_data)
