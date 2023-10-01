@@ -87,7 +87,7 @@ init_lv <- function(X,
 
     x <- Xt %*%g %*% diag(1/sqrt(3*L))
   }else{
-    do.call(h2o::h2o.init, h2o.init.args(...))  # connect to H2O instance
+    do.call(h2o::h2o.init, h2o.init.ctrl(...))  # connect to H2O instance
     if(nRounds > 1 & nRand > 1)stop("Only one of nRounds or nRand can be bigger than 1\n")
     if(nRounds > 1){
       set.seed(seed)
